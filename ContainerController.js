@@ -13,7 +13,7 @@ exports.createSession = function(hub_address, req, res, next) {
     portBusy[hub_address] = {};
   }
   if (hub_address == "localhost" || hub_address == "127.0.0.1") {
-    docker= new Docker();
+    docker = new Docker();
     var portSelected = 0;
     while (
       portSelected < 10000 ||
@@ -21,24 +21,38 @@ exports.createSession = function(hub_address, req, res, next) {
     ) {
       portSelected = randomInt(10000, 32000);
     }
-    
+
     createDockerContainer("chrome", portSelected)
       .catch(err => {
-        console.log("Unable to create Docker Container:" + err);
+        message = "Unable to create Docker Container::" + err;
+        console.log(message);
+        res.status(500).send({ error: message });
       })
-      .then(container => startContainer(container)
+      .then(container =>
+        startContainer(container)
           .catch(err => {
-            console.log("Unable to start Docker Container:" + err);
+            message = "Unable to start Docker Container::" + err;
+            console.log(message);
+            res.status(500).send({ error: message });
           })
-          .then(container => waitForWebDriverPort(container)
+          .then(container =>
+            waitForWebDriverPort(container)
               .catch(err => {
-                console.log("Problem while waiting for webdriver:" + err);
+                message = "Problem while waiting for webdriver::" + err;
+                console.log(message);
+                res.status(500).send({ error: message });
               })
-              .then(container => startNewSession(container, req, res)
+              .then(container =>
+                startNewSession(container, req, res)
                   .catch(err => {
-                    console.log("Unable to start webdriver session:"+err);
+                    message = "Unable to start webdriver session::" + err;
+                    console.log(message);
+                    res.status(500).send({ error: message });
                   })
-                  .then())));
+                  .then()
+              )
+          )
+      );
   } else {
   }
 };
@@ -46,7 +60,7 @@ exports.createSession = function(hub_address, req, res, next) {
 function createDockerContainer(browserType, portNumber) {
 
   return docker.createContainer({
-    Image: "vjanos/" + browserType + "-node",
+    Image: "node-" + browserType + "",
     AttachStdin: false,
     AttachStdout: false,
     AttachStderr: false,
