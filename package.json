@@ -25,6 +25,7 @@
   "homepage": "https://github.com/janosv81/selenium-flower#readme",
   "dependencies": {
     "dockerode": "^2.5.5",
+    "express": "^4.16.3",
     "load-balancers": "^1.1.120",
     "random-int": "^1.0.0",
     "requestify": "^0.2.5",
