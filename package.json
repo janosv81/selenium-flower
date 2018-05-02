@@ -1,0 +1,34 @@
+{
+  "name": "selenium-flower",
+  "version": "1.0.0",
+  "description": "Selenium grid with Docker",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/janosv81/selenium-flower.git"
+  },
+  "keywords": [
+    "selenium",
+    "test",
+    "automation",
+    "docker"
+  ],
+  "author": "Janos Virag",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/janosv81/selenium-flower/issues"
+  },
+  "homepage": "https://github.com/janosv81/selenium-flower#readme",
+  "dependencies": {
+    "dockerode": "^2.5.5",
+    "load-balancers": "^1.1.120",
+    "random-int": "^1.0.0",
+    "requestify": "^0.2.5",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "wait-on": "^2.1.0"
+  }
+}
