@@ -17,6 +17,14 @@ async function example() {
 }
 
 example();
-
-
-
+example();
+example();
+example();
+example();
+example();
+example();
+example();
+example();
+example();
+example();
+example();

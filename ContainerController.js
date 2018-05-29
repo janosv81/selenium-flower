@@ -4,6 +4,7 @@ var dockerIsWorking = false;
 const portBusy = {};
 const containers = {};
 const randomInt = require("random-int");
+const async = require("async");
 const waitOn = require("wait-on");
 const requestify = require("requestify");
 
@@ -85,23 +86,38 @@ function createDockerContainer(browserType, portNumber) {
 }
 
 function startContainer(container) {
-  dockerIsWorking = true;
   return new Promise(function (resolve, reject) {
-    container.start().then(container => {
-      container.inspect().then(containerinfo => {
-        dockerIsWorking = false;
-        container.proxyPort = containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort;
-        resolve(container);
-        console.log("ChromeDriver started");
-        console.log(
-          containerinfo.Config.Hostname +
-          " - " +
-          containerinfo.NetworkSettings.IPAddress +
-          ":" +
-          containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort
-        );
-      });
-    });
+    var count = 0;
+    async.whilst(
+      function () {
+        return dockerIsWorking;
+      },
+      function (callback) {
+        count++;
+        setTimeout(function () {
+          callback(null, count);
+        }, 600);
+      },
+      function (err, n) {
+        dockerIsWorking = true;
+
+        container.start().then(container => {
+          container.inspect().then(containerinfo => {
+            dockerIsWorking = false;
+            container.proxyPort = containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort;
+            resolve(container);
+            console.log("ChromeDriver started");
+            console.log(
+              containerinfo.Config.Hostname +
+              " - " +
+              containerinfo.NetworkSettings.IPAddress +
+              ":" +
+              containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort
+            );
+          });
+        });
+      }
+    );
   });
 }
 function waitForWebDriverPort(container) {
@@ -144,6 +160,7 @@ function startNewSession(container, req, res) {
 }
 
 exports.stopContainer = function (sessionInfo) {
+  //console.log("Stopping container: " + sessionInfo.containerID);
   hub_address = sessionInfo.remoteHost;
   if (hub_address == "localhost" || hub_address == "127.0.0.1") {
     docker = new Docker();
@@ -151,8 +168,13 @@ exports.stopContainer = function (sessionInfo) {
     docker = new Docker({ protocol: 'http', host: hub_address, port: 4243 });
   }
   var container = docker.getContainer(sessionInfo.containerID);
-  container.remove({ force: true }, function (err, data) {
+  container.stop().then(result => {
+    container.remove({ force: true }, function (err, data) {
+    });
+  }).catch(err => {
+    console.log("Error while stopping container:" + err);
   });
+
 };
 
 function waitForDockerStop(remoteHost, containerID) {

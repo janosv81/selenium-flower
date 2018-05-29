@@ -38,7 +38,7 @@ exports.killSession = function killSession(req, res) {
   sessionID = req.params.id;
   var forwardURL = sessions[sessionID].forwardUrl;
   url = req.path.replace("/wd/hub/", "");
-  //console.log(req.method + " " + forwardURL + "/" + url);
+
   requestify
     .request(forwardURL + "/" + url, {
       method: req.method,
@@ -46,7 +46,6 @@ exports.killSession = function killSession(req, res) {
       dataType: "json"
     })
     .then(response => {
-      //console.log(response.body)
       res.send(response.body);
       res.end();
       containerCrtl.stopContainer(sessions[sessionID]);
