@@ -2,7 +2,8 @@ const {Builder, By, Key, until} = require('selenium-webdriver');
 
 async function example() {
     let driver = new Builder()
-      .forBrowser("chrome")
+      .forBrowser("chrome","67")
+      //.usingServer("http://test:test-password@10.31.32.140:4444/wd/hub")
       .usingServer("http://localhost:4444/wd/hub")
       .build();
       await driver.getSession();
@@ -16,15 +17,4 @@ async function example() {
   
 }
 
-example();
-example();
-example();
-example();
-example();
-example();
-example();
-example();
-example();
-example();
-example();
 example();

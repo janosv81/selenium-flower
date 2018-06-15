@@ -8,7 +8,7 @@ const async = require("async");
 const waitOn = require("wait-on");
 const requestify = require("requestify");
 
-exports.createSession = async function (hub_address, req, res, next,cb) {
+exports.createSession = function (hub_address, req, res, next,cb) {
   if (portBusy[hub_address] == null) {
     portBusy[hub_address] = {};
   }
@@ -63,18 +63,21 @@ exports.createSession = async function (hub_address, req, res, next,cb) {
 function createDockerContainer(browserType, portNumber) {
 
   return docker.createContainer({
-    Image: "vjanos/chrome-node",
+    Image: "selenoid/"+browserType,
     AttachStdin: false,
     AttachStdout: false,
     AttachStderr: false,
     Tty: false,
     OpenStdin: false,
     ExposedPorts: {
-      "9515/tcp": {}
+      "4444/tcp": {}
     },
     HostConfig: {
+      "SecurityOpt": [
+        "seccomp:unconfined"
+      ],
       PortBindings: {
-        "9515/tcp": [
+        "4444/tcp": [
           {
             HostPort: portNumber.toString()
           }
@@ -104,16 +107,16 @@ function startContainer(container) {
         container.start().then(container => {
           container.inspect().then(containerinfo => {
             dockerIsWorking = false;
-            container.proxyPort = containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort;
+            container.proxyPort = containerinfo.NetworkSettings.Ports["4444/tcp"][0].HostPort;
             resolve(container);
-            console.log("ChromeDriver started");
-            console.log(
+            //console.log("ChromeDriver started");
+            /*console.log(
               containerinfo.Config.Hostname +
               " - " +
               containerinfo.NetworkSettings.IPAddress +
               ":" +
-              containerinfo.NetworkSettings.Ports["9515/tcp"][0].HostPort
-            );
+              containerinfo.NetworkSettings.Ports["4444/tcp"][0].HostPort
+            );*/
           });
         });
       }
@@ -122,7 +125,8 @@ function startContainer(container) {
 }
 function waitForWebDriverPort(container) {
   return new Promise(function (resolve, reject) {
-    var opts = { resources: ["tcp:" + container.modem.host +":" + container.proxyPort], delay: 500, interval: 50, timeout: 30000, window: 1000 };
+    var hostname = container.modem.host ? container.modem.host : "localhost";
+    var opts = { resources: ["tcp:" + hostname +":" + container.proxyPort], delay: 500, interval: 50, timeout: 30000, window: 1000 };
     // initial delay in ms, default 0 // poll interval in ms, default 250ms // timeout in ms, default Infinity // stabilization time in ms, default 750ms
     waitOn(opts, function (err) {
       if (err) {
@@ -136,7 +140,7 @@ function waitForWebDriverPort(container) {
 
 function startNewSession(container, req, res) {
   var port = container.proxyPort;
-  var remoteHost = container.modem.host;
+  var remoteHost = container.modem.host ? container.modem.host : "localhost";
   var containerID=container.id;
   return new Promise(function (resolve, reject) {
     requestify
@@ -154,13 +158,13 @@ function startNewSession(container, req, res) {
         resolve(sessionObj);
       })
       .catch(err => {
-        reject("Unable to start session on port " + port + ":" + err);
+        reject("Unable to start session on port " + port + ":" + err.body);
       });
   });
 }
 
 exports.stopContainer = function (sessionInfo) {
-  //console.log("Stopping container: " + sessionInfo.containerID);
+  console.log("Stopping container: " + sessionInfo.containerID);
   hub_address = sessionInfo.remoteHost;
   if (hub_address == "localhost" || hub_address == "127.0.0.1") {
     docker = new Docker();

@@ -1,7 +1,7 @@
 //import { P2cBalancer } from "load-balancers";
 var lb = require("load-balancers");
 var requestify = require("requestify");
-const proxies = ["10.31.32.136"];
+const proxies = ["10.31.32.135", "10.31.32.136"];
 const sessions = {};
 var containerCrtl = require("./ContainerController");
 // Initializes the Power of 2 Choices (P2c) Balancer
@@ -11,6 +11,7 @@ exports.createSession = function(req,res,next) {
   const proxy = proxies[balancer.pick()];
   containerCrtl.createSession(proxy, req, res, next,function(sessionInfo){
     sid = sessionInfo.sessionId;
+    console.log("Session created:"+sid);
     sessions[sid] = sessionInfo;
     res.send(sessionInfo);
   });
@@ -37,6 +38,8 @@ exports.forwardSession = function forwardSession(req, res) {
 exports.killSession = function killSession(req, res) {
   sessionID = req.params.id;
   var forwardURL = sessions[sessionID].forwardUrl;
+  //console.log("Killing: "+forwardURL);
+  //console.log(sessions);
   url = req.path.replace("/wd/hub/", "");
 
   requestify
@@ -49,5 +52,11 @@ exports.killSession = function killSession(req, res) {
       res.send(response.body);
       res.end();
       containerCrtl.stopContainer(sessions[sessionID]);
-    });
+      console.log("Killing session:" + sessionID);
+      delete sessions[sessionID];
+    }).catch(err=>{
+      //console.log(sessions);
+      console.log("Problem while stopping session "+sessionID+" :: "+err);
+      }
+    );
 }
