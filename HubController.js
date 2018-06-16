@@ -11,7 +11,8 @@ exports.createSession = function(req,res,next) {
   const proxy = proxies[balancer.pick()];
   containerCrtl.createSession(proxy, req, res, next,function(sessionInfo){
     sid = sessionInfo.sessionId;
-    console.log("Session created:"+sid);
+    console.log("Session created: " + sid + " at " + sessionInfo.forwardUrl);
+    console.log("using container: " + sessionInfo.containerID);
     sessions[sid] = sessionInfo;
     res.send(sessionInfo);
   });
@@ -29,7 +30,7 @@ exports.forwardSession = function forwardSession(req, res) {
       dataType: "json"
     })
     .then(response => {
-      //console.log(response.body)
+      //console.log(response.body);
       res.send(response.body);
       res.end();
     });
@@ -37,7 +38,10 @@ exports.forwardSession = function forwardSession(req, res) {
 
 exports.killSession = function killSession(req, res) {
   sessionID = req.params.id;
-  var forwardURL = sessions[sessionID].forwardUrl;
+  if (sessions[sessionID]){
+  var forwardURL = sessions[sessionID].forwardUrl;} else{
+    res.end(404);
+  }
   //console.log("Killing: "+forwardURL);
   //console.log(sessions);
   url = req.path.replace("/wd/hub/", "");
@@ -51,8 +55,8 @@ exports.killSession = function killSession(req, res) {
     .then(response => {
       res.send(response.body);
       res.end();
+      console.log("Session ended:" + sessionID);
       containerCrtl.stopContainer(sessions[sessionID]);
-      console.log("Killing session:" + sessionID);
       delete sessions[sessionID];
     }).catch(err=>{
       //console.log(sessions);

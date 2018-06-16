@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require("body-parser");
 var hubController = require("./HubController");
 var sessions = [];
+global.debug = typeof v8debug === 'object';
 app.use(bodyParser.json({limit: '2048kb'}))
 app.use(bodyParser.urlencoded({extended: false }))
 app.get('/', (req, res) => res.send('Welcome to Smartbox DockerHub!'))

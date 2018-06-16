@@ -74,7 +74,7 @@ function createDockerContainer(browserType, portNumber) {
     },
     HostConfig: {
       "SecurityOpt": [
-        "seccomp:unconfined"
+        "seccomp=unconfined"
       ],
       PortBindings: {
         "4444/tcp": [
@@ -158,13 +158,13 @@ function startNewSession(container, req, res) {
         resolve(sessionObj);
       })
       .catch(err => {
-        reject("Unable to start session on port " + port + ":" + err.body);
+        reject("Unable to start session on " + remoteHost+" port " + port + ":" + err.body);
       });
   });
 }
 
 exports.stopContainer = function (sessionInfo) {
-  console.log("Stopping container: " + sessionInfo.containerID);
+  
   hub_address = sessionInfo.remoteHost;
   if (hub_address == "localhost" || hub_address == "127.0.0.1") {
     docker = new Docker();
@@ -174,6 +174,7 @@ exports.stopContainer = function (sessionInfo) {
   var container = docker.getContainer(sessionInfo.containerID);
   container.stop().then(result => {
     container.remove({ force: true }, function (err, data) {
+    console.log("Container removed: " + sessionInfo.containerID);
     });
   }).catch(err => {
     console.log("Error while stopping container:" + err);
