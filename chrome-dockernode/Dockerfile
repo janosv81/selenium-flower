@@ -1,6 +1,16 @@
 FROM ubuntu:trusty
 
 RUN apt-get update && apt-get install -y curl xvfb wget procps unzip gnupg nano net-tools
+RUN apt-get update && \
+  apt-get install -yqq wget unzip && \
+  rm -rf /var/lib/apt/lists/* /var/cache/apt/*
+#========================================
+# Add automation user
+#========================================
+RUN sudo useradd automation --shell /bin/bash --create-home && \
+  sudo usermod -a -G sudo automation && \
+  echo 'ALL ALL = (ALL) NOPASSWD: ALL' >> /etc/sudoers && \
+  echo 'automation:secret' | chpasswd
 
 ARG CHROME_VERSION="google-chrome-stable"
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
@@ -29,4 +39,5 @@ EXPOSE 9515
 EXPOSE 5900
 COPY startapp.sh /startapp.sh
 RUN chmod 777 /startapp.sh
+USER automation
 CMD /startapp.sh

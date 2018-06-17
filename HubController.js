@@ -1,7 +1,8 @@
 //import { P2cBalancer } from "load-balancers";
 var lb = require("load-balancers");
 var requestify = require("requestify");
-const proxies = ["10.31.32.135", "10.31.32.136"];
+//const proxies = ["10.31.32.135", "10.31.32.136"];
+const proxies = ["localhost"];
 const sessions = {};
 var containerCrtl = require("./ContainerController");
 // Initializes the Power of 2 Choices (P2c) Balancer
@@ -40,7 +41,7 @@ exports.killSession = function killSession(req, res) {
   sessionID = req.params.id;
   if (sessions[sessionID]){
   var forwardURL = sessions[sessionID].forwardUrl;} else{
-    res.end(404);
+    res.status(404).send({ error: "Problem while killing session." });
   }
   //console.log("Killing: "+forwardURL);
   //console.log(sessions);
@@ -56,7 +57,8 @@ exports.killSession = function killSession(req, res) {
       res.send(response.body);
       res.end();
       console.log("Session ended:" + sessionID);
-      containerCrtl.stopContainer(sessions[sessionID]);
+      //containerCrtl.stopContainer(sessions[sessionID]);
+      containerCrtl.unlinkContainer(sessions[sessionID]);
       delete sessions[sessionID];
     }).catch(err=>{
       //console.log(sessions);

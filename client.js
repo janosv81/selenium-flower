@@ -5,6 +5,7 @@ async function example() {
       .forBrowser("chrome","67")
       //.usingServer("http://test:test-password@10.31.32.140:4444/wd/hub")
       .usingServer("http://localhost:4444/wd/hub")
+      .getChromeOptions()
       .build();
       await driver.getSession();
     await driver.get('http://www.google.com/ncr');
