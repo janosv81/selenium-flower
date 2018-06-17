@@ -8,6 +8,7 @@ app.get('/', (req, res) => res.send('Welcome to Smartbox DockerHub!'))
 app.post("/wd/hub/session", hubController.createSession);
 app.delete("/wd/hub/session/:id", hubController.killSession);
 app.all("/wd/hub/session/:id/*", hubController.forwardSession);
+app.get("/host/:id", hubController.sessionInfo);
 
 app.listen(4444,"0.0.0.0", () => console.log("Dockerhub listening on port 4444!"));
 
