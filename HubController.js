@@ -1,8 +1,8 @@
 //import { P2cBalancer } from "load-balancers";
 var lb = require("load-balancers");
 var requestify = require("requestify");
-//const proxies = ["10.31.32.135", "10.31.32.136"];
-const proxies = ["localhost"];
+const proxies = ["10.31.32.135", "10.31.32.136"];
+//const proxies = ["localhost"];
 const sessions = {};
 var containerCrtl = require("./ContainerController");
 // Initializes the Power of 2 Choices (P2c) Balancer
