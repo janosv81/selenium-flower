@@ -11,6 +11,7 @@ const balancer = new lb.P2cBalancer(proxies.length);
 exports.createSession = function(req,res,next) {
   const proxy = proxies[balancer.pick()];
   containerCrtl.createSession(proxy, req, res, next,function(sessionInfo){
+    if (sessionInfo==undefined) res.status(500).end();
     sid = sessionInfo.sessionId;
     console.log("Session created: " + sid + " at " + sessionInfo.forwardUrl);
     console.log("using container: " + sessionInfo.containerID);
