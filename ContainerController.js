@@ -202,6 +202,7 @@ exports.stopContainer = function (sessionInfo) {
 
 
 exports.unlinkContainer = function (sessionInfo) {
+  sessionInfo.terminated = new Date();
   let remoteHost = sessionInfo.remoteHost;
   if (freeContainers[remoteHost] == null) {
     freeContainers[remoteHost] = [];
