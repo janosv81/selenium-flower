@@ -8,6 +8,24 @@ const async = require("async");
 const waitOn = require("wait-on");
 const requestify = require("requestify");
 
+var clc = require("cli-color");
+var mapping = {
+  log: clc.blue,
+  warn: clc.yellow,
+  error: clc.red
+};
+
+["log", "warn", "error"].forEach(function (method) {
+  var oldMethod = console[method].bind(console);
+  console[method] = function () {
+    oldMethod.apply(
+      console,
+      [mapping[method](new Date().toISOString())]
+        .concat(arguments)
+    );
+  };
+});
+
 exports.createSession = function (hub_address, req, res, next, cb) {
   if (hub_address == "localhost" || hub_address == "127.0.0.1") {
     docker = new Docker();

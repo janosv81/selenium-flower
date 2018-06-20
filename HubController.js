@@ -8,15 +8,34 @@ var containerCrtl = require("./ContainerController");
 // Initializes the Power of 2 Choices (P2c) Balancer
 const balancer = new lb.P2cBalancer(proxies.length);
 
-exports.createSession = function(req,res,next) {
+var clc = require("cli-color");
+var mapping = {
+  log: clc.blue,
+  warn: clc.yellow,
+  error: clc.red
+};
+
+["log", "warn", "error"].forEach(function(method) {
+    var oldMethod = console[method].bind(console);
+    console[method] = function() {
+        oldMethod.apply(
+            console,
+            [mapping[method](new Date().toISOString())]
+                .concat(arguments)
+        );
+    };
+});
+
+exports.createSession = function (req, res, next) {
   const proxy = proxies[balancer.pick()];
-  containerCrtl.createSession(proxy, req, res, next,function(sessionInfo){
-    if (sessionInfo==undefined) res.status(500).end();
-    sid = sessionInfo.sessionId;
-    console.log("Session created: " + sid + " at " + sessionInfo.forwardUrl);
-    console.log("using container: " + sessionInfo.containerID);
-    sessions[sid] = sessionInfo;
-    res.send(sessionInfo);
+  containerCrtl.createSession(proxy, req, res, next, function (sessionInfo) {
+    if (sessionInfo) {
+      sid = sessionInfo.sessionId;
+      console.log("Session created: " + sid + " at " + sessionInfo.forwardUrl);
+      console.log("using container: " + sessionInfo.containerID);
+      sessions[sid] = sessionInfo;
+      res.send(sessionInfo);
+    }
   });
 };
 
