@@ -9,6 +9,7 @@ var containerCrtl = require("./ContainerController");
 const balancer = new lb.P2cBalancer(proxies.length);
 
 exports.createSession = function (req, res, next) {
+  console.log("Incoming request to create session from "+req.ip());
   const proxy = proxies[balancer.pick()];
   containerCrtl.createSession(proxy, req, res, next, function (sessionInfo) {
     if (sessionInfo) {
