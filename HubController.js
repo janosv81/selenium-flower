@@ -9,7 +9,7 @@ var containerCrtl = require("./ContainerController");
 const balancer = new lb.P2cBalancer(proxies.length);
 
 exports.createSession = function (req, res, next) {
-  console.log("Incoming request to create session from ");
+  console.log("Incoming request to create session.");
   const proxy = proxies[balancer.pick()];
   containerCrtl.createSession(proxy, req, res, next, function (sessionInfo) {
     if (sessionInfo) {
@@ -45,6 +45,7 @@ exports.killSession = function killSession(req, res) {
   if (sessions[sessionID]){
   var forwardURL = sessions[sessionID].forwardUrl;} else{
     res.status(404).send({ error: "Problem while killing session." });
+    return;
   }
   //console.log("Killing: "+forwardURL);
   //console.log(sessions);
@@ -61,8 +62,10 @@ exports.killSession = function killSession(req, res) {
       res.end();
       console.log("Session ended:" + sessionID);
       //containerCrtl.stopContainer(sessions[sessionID]);
-      containerCrtl.unlinkContainer(sessions[sessionID]);
-      delete sessions[sessionID];
+      containerCrtl.unlinkContainer(sessions[sessionID]).then(result=>{
+        delete sessions[sessionID];
+      });
+      
     }).catch(err=>{
       //console.log(sessions);
       console.log("Problem while stopping session "+sessionID+" :: "+err);

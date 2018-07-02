@@ -202,12 +202,15 @@ exports.stopContainer = function (sessionInfo) {
 
 
 exports.unlinkContainer = function (sessionInfo) {
-  sessionInfo.terminated = new Date();
-  let remoteHost = sessionInfo.remoteHost;
-  if (freeContainers[remoteHost] == null) {
-    freeContainers[remoteHost] = [];
-  }
-  freeContainers[remoteHost].push(sessionInfo);
+  return new Promise(function (resolve, reject) {
+    sessionInfo.terminated = new Date();
+    let remoteHost = sessionInfo.remoteHost;
+    if (freeContainers[remoteHost] == null) {
+      freeContainers[remoteHost] = [];
+    }
+    freeContainers[remoteHost].push(sessionInfo);
+    resolve();
+  });
 }
 
 function waitForDockerStop(remoteHost, containerID) {
