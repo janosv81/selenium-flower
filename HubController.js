@@ -1,7 +1,21 @@
 //import { P2cBalancer } from "load-balancers";
 var lb = require("load-balancers");
 var requestify = require("requestify");
-const proxies = ["10.31.32.135", "10.31.32.136"];
+const proxies = ["10.11.0.182",
+  "10.11.0.190",
+  "10.11.0.191",
+  "10.11.0.192",
+  "10.11.0.193",
+  "10.11.0.194",
+  "10.11.0.195",
+  "10.11.0.196",
+  "10.11.0.197",
+  "10.11.0.198",
+  "10.11.0.199",
+  "10.11.0.207",
+  "10.11.0.208",
+  "10.11.0.209",
+  "10.11.0.210"];
 //const proxies = ["localhost"];
 const sessions = {};
 var containerCrtl = require("./ContainerController");
@@ -10,25 +24,40 @@ const balancer = new lb.P2cBalancer(proxies.length);
 
 exports.createSession = function (req, res, next) {
   console.log("Incoming request to create session.");
-  const proxy = proxies[balancer.pick()];
-  containerCrtl.createSession(proxy, req, res, next, function (sessionInfo) {
-    if (sessionInfo) {
-      sid = sessionInfo.sessionId;
-      console.log("Session created: " + sid + " at " + sessionInfo.forwardUrl);
-      console.log("using container: " + sessionInfo.containerID);
-      sessions[sid] = sessionInfo;
-      res.send(sessionInfo);
-    }
-  });
+  node = proxies[balancer.pick()];
+  url = req.path;
+  forwardURL="http://"+node+":5555";
+  console.log(req.method + " " + forwardURL  + url);
+  var start = process.hrtime();
+  requestify
+    .request(forwardURL  + url, {
+      method: req.method,
+      body: req.body,
+      dataType: "json"
+    })
+    .then(response => {
+      body = JSON.parse(response.body);
+      finish = process.hrtime(start);
+      console.log("Session " + body.sessionId +" created at "+node+" after "+finish[0]+" second and "+(finish[1]/1000000) +" ms");
+      sessions[body.sessionId]={};
+      sessions[body.sessionId].forwardUrl = forwardURL;
+      res.send(response.body);
+      res.end();
+    }).catch(resp=>{
+      console.log(resp.code+resp.body);
+      res.send(response.body);
+      res.end();
+    });
+
 };
 
 exports.forwardSession = function forwardSession(req, res) {
   sessionID = req.params.id;
   var forwardURL = sessions[sessionID].forwardUrl;
-  url = req.path.replace("/wd/hub/", "");
+  url = req.path;
   //console.log(req.method + " " + forwardURL + "/" + url);
   requestify
-    .request(forwardURL + "/" + url, {
+    .request(forwardURL +  url, {
       method: req.method,
       body: req.body,
       dataType: "json"
