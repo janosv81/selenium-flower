@@ -1,25 +1,12 @@
 //import { P2cBalancer } from "load-balancers";
 var lb = require("load-balancers");
 var requestify = require("requestify");
-const proxies = ["10.11.0.182",
-  "10.11.0.190",
-  "10.11.0.191",
-  "10.11.0.192",
-  "10.11.0.193",
-  "10.11.0.194",
-  "10.11.0.195",
-  "10.11.0.196",
-  "10.11.0.197",
-  "10.11.0.198",
-  "10.11.0.199",
-  "10.11.0.207",
-  "10.11.0.208",
-  "10.11.0.209",
+const proxies = [
   "10.11.0.210"];
 //const proxies = ["localhost"];
 const sessions = {};
 const usage = {};
-const max_browsers = 4;
+const max_browsers = 1;
 const newsession_timeout = 60000;
 //var containerCrtl = require("./ContainerController");
 
