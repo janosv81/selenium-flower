@@ -64,7 +64,7 @@ exports.forwardSession = function forwardSession(req, res) {
   sessionID = req.params.id;
   var forwardURL = sessions[sessionID].forwardUrl;
   url = req.path;
-  //console.log(req.method + " " + forwardURL + "/" + url);
+  console.log(req.method + " " + forwardURL + "/" + url);
   requestify
     .request(forwardURL +  url, {
       method: req.method,
@@ -85,7 +85,7 @@ exports.killSession = function killSession(req, res) {
     res.status(404).send({ error: "Problem while killing session." });
     return;
   }
-  //console.log("Killing: "+forwardURL);
+  console.log("Killing session: "+sessionID);
   //console.log(sessions);
   url = req.path.replace("/wd/hub/", "");
 
@@ -128,6 +128,7 @@ function waitForNode() {
       // Initializes the Power of 2 Choices (P2c) Balancer
       const balancer = new lb.P2cBalancer(proxies.length);
       select = proxies[balancer.pick()];
+      console.log("Usage of "+select+" is:"+usage[select]);
       use = usage[select] || 0;
       if (use < max_browsers) {
         node = select;
