@@ -102,6 +102,8 @@ exports.killSession = function killSession(req, res) {
       //containerCrtl.stopContainer(sessions[sessionID]);
       containerCrtl.unlinkContainer(sessions[sessionID]).then(result=>{
         delete sessions[sessionID];
+        val = usage[node] || 0;
+        usage[node] = val - 1;
       });
       
     }).catch(err=>{
