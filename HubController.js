@@ -18,36 +18,45 @@ const proxies = ["10.11.0.182",
   "10.11.0.210"];
 //const proxies = ["localhost"];
 const sessions = {};
-var containerCrtl = require("./ContainerController");
-// Initializes the Power of 2 Choices (P2c) Balancer
-const balancer = new lb.P2cBalancer(proxies.length);
+const usage = {};
+const max_browsers = 4;
+const newsession_timeout = 60000;
+//var containerCrtl = require("./ContainerController");
+
 
 exports.createSession = function (req, res, next) {
   console.log("Incoming request to create session.");
-  node = proxies[balancer.pick()];
-  url = req.path;
-  forwardURL="http://"+node+":5555";
-  console.log(req.method + " " + forwardURL  + url);
-  var start = process.hrtime();
-  requestify
-    .request(forwardURL  + url, {
-      method: req.method,
-      body: req.body,
-      dataType: "json"
-    })
-    .then(response => {
-      body = JSON.parse(response.body);
-      finish = process.hrtime(start);
-      console.log("Session " + body.sessionId +" created at "+node+" after "+finish[0]+" second and "+(finish[1]/1000000) +" ms");
-      sessions[body.sessionId]={};
-      sessions[body.sessionId].forwardUrl = forwardURL;
-      res.send(response.body);
-      res.end();
-    }).catch(resp=>{
-      console.log(resp.code+resp.body);
-      res.send(response.body);
-      res.end();
-    });
+  waitForNode().then(node=>{
+    url = req.path;
+    forwardURL = "http://" + node + ":5555";
+    console.log(req.method + " " + forwardURL + url);
+    var start = process.hrtime();
+    //req.header.set("Content-Type", "application/json");
+    requestify
+      .request(forwardURL + url, {
+        method: req.method,
+        body: req.body,
+        dataType: "json"
+      })
+      .then(response => {
+        body = JSON.parse(response.body);
+        finish = process.hrtime(start);
+        console.log("Session " + body.sessionId + " created at " + node + " after " + finish[0] + " second and " + (finish[1] / 1000000) + " ms");
+        sessions[body.sessionId] = {};
+        sessions[body.sessionId].forwardUrl = forwardURL;
+        val = usage[node] || 0;
+        usage[node] = val + 1;
+        res.send(response.body);
+        res.end();
+      }).catch(resp => {
+        console.log(resp.code + resp.body);
+        res.send(response.body);
+        res.end();
+      });
+  }).catch(err=>{
+    res.status(500).send(err);
+  });
+
 
 };
 
@@ -107,4 +116,22 @@ exports.sessionInfo = function sessionInfo(req, res) {
   let response = sessions[sessionID];
   response.Name = sessions[sessionID].remoteHost;
   res.json(response).end();
+}
+
+function waitForNode() {
+  var endTime = Number(new Date()) + (newsession_timeout || 30000);
+  return new Promise(function (resolve, reject) {
+    node = null;
+    while (node == null && Number(new Date()) < endTime) {
+      // Initializes the Power of 2 Choices (P2c) Balancer
+      const balancer = new lb.P2cBalancer(proxies.length);
+      select = proxies[balancer.pick()];
+      use = usage[select] || 0;
+      if (use < max_browsers) {
+        node = select;
+        resolve(node);
+      }
+    }
+    reject('Timed out while waiting for new browser session to be available...');
+  });
 }
