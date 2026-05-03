@@ -33,6 +33,6 @@
     "random-int": "^2.0.0",
     "requestify": "^0.2.5",
     "selenium-webdriver": "^4.0.0-alpha.1",
-    "wait-on": "^3.3.0"
+    "wait-on": "^9.0.5"
   }
 }
