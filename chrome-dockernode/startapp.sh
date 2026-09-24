@@ -1,3 +1,3 @@
 #!/bin/bash
 Xvfb :1 -screen 0 1024x768x16 -ac &
-usr/bin/chromedriver --whitelisted-ips="" --verbose --port=4444
+exec /usr/bin/chromedriver --allowed-ips= --port=4444 --verbose

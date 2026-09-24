@@ -1,13 +1,12 @@
 const express = require("express");
 const app = express();
-const bodyParser = require("body-parser");
 var hubController = require("./HubController");
-app.use(bodyParser.json({limit: '2048kb'}))
-app.use(bodyParser.urlencoded({extended: false }))
+app.use(express.json({limit: '2048kb'}))
+app.use(express.urlencoded({extended: false }))
 app.get('/', (req, res) => res.send('Welcome to Smartbox DockerHub!'))
 app.post("/wd/hub/session", hubController.createSession);
 app.delete("/wd/hub/session/:id", hubController.killSession);
-app.all("/wd/hub/session/:id/*", hubController.forwardSession);
+app.all("/wd/hub/session/:id/*path", hubController.forwardSession);
 app.get("/host/:id", hubController.sessionInfo);
 
 require('log-timestamp');

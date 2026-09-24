@@ -3,7 +3,7 @@ var docker;
 var dockerIsWorking = false;
 const portBusy = {};
 const freeContainers = {};
-const randomInt = require("random-int");
+const randomInt = require("random-int").default;
 const async = require("async");
 const waitOn = require("wait-on");
 const requestify = require("requestify");
@@ -110,8 +110,8 @@ function startContainer(container) {
   return new Promise(function (resolve, reject) {
     var count = 0;
     async.whilst(
-      function () {
-        return dockerIsWorking;
+      function (cb) {
+        cb(null, dockerIsWorking);
       },
       function (callback) {
         count++;
